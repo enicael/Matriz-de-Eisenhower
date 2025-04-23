@@ -1,0 +1,1479 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matriz de Eisenhower - Classificador de Tarefas</title>
+    <style>
+        :root {
+            --primary-color: #4A90E2;
+            --success-color: #4CAF50;
+            --warning-color: #FFC107;
+            --danger-color: #F44336;
+            --text-color: #333;
+            --text-light: #777;
+            --bg-color: #f4f4f4;
+            --bg-dark: #e0e0e0;
+            --white: #ffffff;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            --card-shadow-hover: 0 8px 20px rgba(0, 0, 0, 0.15);
+            --border-radius: 12px;
+            --transition: all 0.3s ease;
+            
+            /* Cores da matriz de Eisenhower */
+            --eisenhower-1: #FF5252; /* Importante e Urgente */
+            --eisenhower-2: #FFD740; /* Importante não Urgente */
+            --eisenhower-3: #69F0AE; /* Urgente não Importante */
+            --eisenhower-4: #B388FF; /* Não Urgente não Importante */
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, var(--bg-color), var(--bg-dark));
+            margin: 0;
+            padding: 10px;
+            color: var(--text-color);
+            min-height: 100vh;
+            font-size: 14px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            background: var(--white);
+            padding: 15px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            margin: 10px auto;
+        }
+
+        h2 {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--bg-dark);
+            overflow-x: auto;
+            padding-bottom: 5px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .tabs::-webkit-scrollbar {
+            display: none;
+        }
+
+        .tab {
+            padding: 10px 15px;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--text-light);
+            transition: var(--transition);
+            border-bottom: 3px solid transparent;
+            white-space: nowrap;
+            font-size: 14px;
+        }
+
+        .tab:hover {
+            color: var(--primary-color);
+        }
+
+        .tab.active {
+            color: var(--primary-color);
+            border-bottom: 3px solid var(--primary-color);
+        }
+
+        .tab i {
+            margin-right: 5px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: var(--text-color);
+            font-size: 14px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--bg-dark);
+            border-radius: var(--border-radius);
+            font-family: inherit;
+            transition: var(--transition);
+            font-size: 14px;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+        }
+
+        .form-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: var(--border-radius);
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-size: 14px;
+        }
+
+        .btn i {
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            background: #357ABD;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: var(--success-color);
+            color: var(--white);
+        }
+
+        .btn-success:hover {
+            background: #3d8b40;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: var(--danger-color);
+            color: var(--white);
+        }
+
+        .btn-danger:hover {
+            background: #d32f2f;
+            transform: translateY(-2px);
+        }
+
+        /* Estilos específicos da Matriz de Eisenhower */
+        .eisenhower-matrix {
+            display: grid;
+            grid-template-columns: 1fr;
+            grid-template-rows: repeat(4, auto);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .quadrant {
+            border-radius: var(--border-radius);
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--card-shadow);
+            transition: var(--transition);
+            min-height: 200px;
+        }
+
+        .quadrant:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--card-shadow-hover);
+        }
+
+        .quadrant-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .quadrant-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: white;
+            margin: 0;
+        }
+
+        .quadrant-count {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 3px 8px;
+            border-radius: 20px;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .quadrant-1 {
+            background: linear-gradient(135deg, var(--eisenhower-1), #FF1744);
+        }
+
+        .quadrant-2 {
+            background: linear-gradient(135deg, var(--eisenhower-2), #FFC400);
+        }
+
+        .quadrant-3 {
+            background: linear-gradient(135deg, var(--eisenhower-3), #00E676);
+        }
+
+        .quadrant-4 {
+            background: linear-gradient(135deg, var(--eisenhower-4), #7C4DFF);
+        }
+
+        .task-card {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: var(--transition);
+            position: relative;
+            flex-wrap: wrap;
+        }
+
+        .task-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        .task-card img {
+            width: 30px;
+            height: 30px;
+            object-fit: contain;
+        }
+
+        .task-details {
+            flex-grow: 1;
+            min-width: 150px;
+        }
+
+        .task-details strong {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-color);
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        .task-details p {
+            font-size: 12px;
+            color: var(--text-light);
+            margin: 2px 0;
+            line-height: 1.4;
+        }
+
+        .task-priority {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 500;
+            margin-left: 5px;
+        }
+
+        .priority-high {
+            background-color: #FFEBEE;
+            color: #C62828;
+        }
+
+        .priority-medium {
+            background-color: #FFF8E1;
+            color: #FF8F00;
+        }
+
+        .priority-low {
+            background-color: #E8F5E9;
+            color: #2E7D32;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 6px;
+            margin-left: auto;
+        }
+
+        .task-actions button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-light);
+            transition: var(--transition);
+            font-size: 14px;
+            padding: 5px;
+        }
+
+        .task-actions button:hover {
+            color: var(--primary-color);
+        }
+
+        .task-actions .edit-btn:hover {
+            color: var(--primary-color);
+        }
+
+        .task-actions .delete-btn:hover {
+            color: var(--danger-color);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 15px;
+            color: white;
+            opacity: 0.8;
+            margin: auto;
+        }
+
+        .empty-state img {
+            width: 60px;
+            height: 60px;
+            opacity: 0.7;
+            margin-bottom: 10px;
+        }
+
+        .empty-state h3 {
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .empty-state p {
+            font-size: 13px;
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .stat-card {
+            background: var(--white);
+            padding: 15px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            text-align: center;
+            transition: var(--transition);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--card-shadow-hover);
+        }
+
+        .stat-card h3 {
+            font-size: 14px;
+            color: var(--text-light);
+            margin-bottom: 8px;
+        }
+
+        .stat-card .stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 3px;
+        }
+
+        .stat-card .stat-label {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+
+        .stat-card-1 .stat-value {
+            color: var(--eisenhower-1);
+        }
+
+        .stat-card-2 .stat-value {
+            color: var(--eisenhower-2);
+        }
+
+        .stat-card-3 .stat-value {
+            color: var(--eisenhower-3);
+        }
+
+        .stat-card-4 .stat-value {
+            color: var(--eisenhower-4);
+        }
+
+        .task-responsible {
+            display: flex;
+            align-items: center;
+            margin-top: 5px;
+            font-size: 11px;
+        }
+
+        .task-responsible img {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            margin-right: 5px;
+            object-fit: cover;
+        }
+
+        .task-responsible span {
+            color: var(--text-light);
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .action-buttons .btn {
+            padding: 8px 12px;
+            font-size: 13px;
+        }
+
+        .data-management {
+            background: var(--white);
+            padding: 15px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            margin-top: 15px;
+        }
+
+        .data-management h3 {
+            margin-bottom: 12px;
+            color: var(--primary-color);
+            font-size: 16px;
+        }
+
+        .data-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .data-actions .btn {
+            padding: 8px 12px;
+            font-size: 13px;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        @media print {
+            body {
+                background: none;
+                padding: 0;
+            }
+            
+            .container {
+                box-shadow: none;
+                width: 100%;
+                max-width: 100%;
+                padding: 10px;
+            }
+            
+            .tabs, .action-buttons, .task-actions, .data-management {
+                display: none !important;
+            }
+            
+            .tab-content {
+                display: block !important;
+            }
+            
+            .task-card {
+                page-break-inside: avoid;
+            }
+            
+            .quadrant {
+                page-break-inside: avoid;
+                height: auto !important;
+            }
+        }
+
+        @media (min-width: 576px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .eisenhower-matrix {
+                grid-template-columns: 1fr 1fr;
+                grid-template-rows: 1fr 1fr;
+            }
+            
+            .stats-container {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            
+            body {
+                font-size: 15px;
+            }
+            
+            .task-card {
+                flex-wrap: nowrap;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .container {
+                width: 95%;
+            }
+
+            h2 {
+                font-size: 24px;
+            }
+            
+            .quadrant {
+                padding: 20px;
+            }
+            
+            .task-card img {
+                width: 40px;
+                height: 40px;
+            }
+            
+            .task-details strong {
+                font-size: 16px;
+            }
+        }
+
+        @media (min-width: 992px) {
+            .container {
+                width: 90%;
+                padding: 30px;
+            }
+            
+            body {
+                padding: 20px;
+                font-size: 16px;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <h2><i class="fas fa-table-cells-large"></i> Matriz de Eisenhower</h2>
+        
+        <div class="tabs">
+            <div class="tab active" onclick="openTab('dashboard')">
+                <i class="fas fa-chart-pie"></i> Dashboard
+            </div>
+            <div class="tab" onclick="openTab('tasks')">
+                <i class="fas fa-list-check"></i> Tarefas
+            </div>
+            <div class="tab" onclick="openTab('responsibles')">
+                <i class="fas fa-users"></i> Responsáveis
+            </div>
+            <div class="tab" onclick="openTab('data')">
+                <i class="fas fa-database"></i> Dados
+            </div>
+        </div>
+        
+        <div id="dashboard" class="tab-content active">
+            <div class="action-buttons">
+                <button class="btn btn-primary" onclick="exportToTxt()">
+                    <i class="fas fa-file-export"></i> Exportar
+                </button>
+                <button class="btn btn-primary" onclick="window.print()">
+                    <i class="fas fa-print"></i> Imprimir
+                </button>
+            </div>
+            
+            <div class="stats-container">
+                <div class="stat-card stat-card-1">
+                    <h3><i class="fas fa-fire"></i> Importante & Urgente</h3>
+                    <div class="stat-value" id="quadrant-1-count">0</div>
+                    <div class="stat-label">Faça agora</div>
+                </div>
+                <div class="stat-card stat-card-2">
+                    <h3><i class="fas fa-calendar-check"></i> Importante não Urgente</h3>
+                    <div class="stat-value" id="quadrant-2-count">0</div>
+                    <div class="stat-label">Agende</div>
+                </div>
+                <div class="stat-card stat-card-3">
+                    <h3><i class="fas fa-user-clock"></i> Urgente não Importante</h3>
+                    <div class="stat-value" id="quadrant-3-count">0</div>
+                    <div class="stat-label">Delegue</div>
+                </div>
+                <div class="stat-card stat-card-4">
+                    <h3><i class="fas fa-trash"></i> Não Urgente não Importante</h3>
+                    <div class="stat-value" id="quadrant-4-count">0</div>
+                    <div class="stat-label">Elimine</div>
+                </div>
+            </div>
+            
+            <div class="eisenhower-matrix">
+                <div class="quadrant quadrant-1">
+                    <div class="quadrant-header">
+                        <h3 class="quadrant-title"><i class="fas fa-fire"></i> Importante e Urgente</h3>
+                        <span class="quadrant-count" id="quadrant-1-header-count">0</span>
+                    </div>
+                    <div class="quadrant-tasks" id="quadrant-1-tasks">
+                        <div class="empty-state">
+                            <img src="https://img.icons8.com/ios/100/000000/task-completed.png" alt="Nenhuma tarefa">
+                            <p>Nenhuma tarefa importante e urgente</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="quadrant quadrant-2">
+                    <div class="quadrant-header">
+                        <h3 class="quadrant-title"><i class="fas fa-calendar-check"></i> Importante não Urgente</h3>
+                        <span class="quadrant-count" id="quadrant-2-header-count">0</span>
+                    </div>
+                    <div class="quadrant-tasks" id="quadrant-2-tasks">
+                        <div class="empty-state">
+                            <img src="https://img.icons8.com/ios/100/000000/task-completed.png" alt="Nenhuma tarefa">
+                            <p>Nenhuma tarefa importante não urgente</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="quadrant quadrant-3">
+                    <div class="quadrant-header">
+                        <h3 class="quadrant-title"><i class="fas fa-user-clock"></i> Urgente não Importante</h3>
+                        <span class="quadrant-count" id="quadrant-3-header-count">0</span>
+                    </div>
+                    <div class="quadrant-tasks" id="quadrant-3-tasks">
+                        <div class="empty-state">
+                            <img src="https://img.icons8.com/ios/100/000000/task-completed.png" alt="Nenhuma tarefa">
+                            <p>Nenhuma tarefa urgente não importante</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="quadrant quadrant-4">
+                    <div class="quadrant-header">
+                        <h3 class="quadrant-title"><i class="fas fa-trash"></i> Não Urgente não Importante</h3>
+                        <span class="quadrant-count" id="quadrant-4-header-count">0</span>
+                    </div>
+                    <div class="quadrant-tasks" id="quadrant-4-tasks">
+                        <div class="empty-state">
+                            <img src="https://img.icons8.com/ios/100/000000/task-completed.png" alt="Nenhuma tarefa">
+                            <p>Nenhuma tarefa não urgente não importante</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="tasks" class="tab-content">
+            <div class="form-group">
+                <button class="btn btn-primary" onclick="showTaskForm()">
+                    <i class="fas fa-plus"></i> Nova Tarefa
+                </button>
+            </div>
+            
+            <div id="task-form-container" style="display: none;">
+                <form id="task-form" onsubmit="saveTask(event)">
+                    <input type="hidden" id="task-id">
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="task-name">Nome da Tarefa</label>
+                            <input type="text" id="task-name" class="form-control" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="task-icon">Ícone (URL)</label>
+                            <input type="text" id="task-icon" class="form-control" 
+                                   placeholder="https://img.icons8.com/ios/60/settings.png">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="task-start">Data de Início</label>
+                            <input type="date" id="task-start" class="form-control" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="task-end">Data de Conclusão</label>
+                            <input type="date" id="task-end" class="form-control" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="task-priority">Prioridade</label>
+                            <select id="task-priority" class="form-control" required>
+                                <option value="high">Alta</option>
+                                <option value="medium" selected>Média</option>
+                                <option value="low">Baixa</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="task-importance">Importância</label>
+                            <select id="task-importance" class="form-control" required>
+                                <option value="high">Alta</option>
+                                <option value="medium" selected>Média</option>
+                                <option value="low">Baixa</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="task-responsible">Responsável</label>
+                        <select id="task-responsible" class="form-control" required>
+                            <option value="">Selecione um responsável</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save"></i> Salvar Tarefa
+                        </button>
+                        <button type="button" class="btn btn-danger" onclick="cancelTaskForm()" style="margin-left: 10px;">
+                            <i class="fas fa-times"></i> Cancelar
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <div id="tasks-list-edit">
+                <div class="empty-state" style="color: var(--text-light);">
+                    <img src="https://img.icons8.com/ios/100/000000/task-completed.png" alt="Nenhuma tarefa">
+                    <h3>Nenhuma tarefa cadastrada</h3>
+                    <p>Clique em "Nova Tarefa" para adicionar uma nova tarefa</p>
+                </div>
+            </div>
+        </div>
+        
+        <div id="responsibles" class="tab-content">
+            <div class="form-group">
+                <button class="btn btn-primary" onclick="showResponsibleForm()">
+                    <i class="fas fa-plus"></i> Novo Responsável
+                </button>
+            </div>
+            
+            <div id="responsible-form-container" style="display: none;">
+                <form id="responsible-form" onsubmit="saveResponsible(event)">
+                    <input type="hidden" id="responsible-id">
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="responsible-name">Nome do Responsável</label>
+                            <input type="text" id="responsible-name" class="form-control" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="responsible-avatar">Avatar (URL)</label>
+                            <input type="text" id="responsible-avatar" class="form-control" 
+                                   placeholder="https://randomuser.me/api/portraits/men/1.jpg">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save"></i> Salvar Responsável
+                        </button>
+                        <button type="button" class="btn btn-danger" onclick="cancelResponsibleForm()" style="margin-left: 10px;">
+                            <i class="fas fa-times"></i> Cancelar
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <div id="responsible-list">
+                <div class="empty-state" style="color: var(--text-light);">
+                    <img src="https://img.icons8.com/ios/100/000000/conference-call.png" alt="Nenhum responsável">
+                    <h3>Nenhum responsável cadastrado</h3>
+                    <p>Clique em "Novo Responsável" para adicionar um novo responsável</p>
+                </div>
+            </div>
+        </div>
+        
+        <div id="data" class="tab-content">
+            <div class="data-management">
+                <h3><i class="fas fa-database"></i> Gerenciamento de Dados</h3>
+                <p>Gerencie os dados da aplicação, faça backup ou restaure de um arquivo.</p>
+                
+                <div class="data-actions">
+                    <button class="btn btn-primary" onclick="exportData()">
+                        <i class="fas fa-file-export"></i> Exportar Todos os Dados
+                    </button>
+                    <button class="btn btn-primary" onclick="document.getElementById('import-file').click()">
+                        <i class="fas fa-file-import"></i> Importar Dados
+                    </button>
+                    <input type="file" id="import-file" style="display: none;" accept=".json" onchange="importData(event)">
+                    <button class="btn btn-danger" onclick="resetData()">
+                        <i class="fas fa-trash"></i> Limpar Todos os Dados
+                    </button>
+                </div>
+                
+                <div class="form-group" style="margin-top: 20px;">
+                    <label for="data-url">Ou cole aqui a URL com os dados:</label>
+                    <div class="form-row">
+                        <input type="text" id="data-url" class="form-control" placeholder="https://exemplo.com/dados.json">
+                        <button class="btn btn-primary" onclick="loadDataFromUrl()">
+                            <i class="fas fa-download"></i> Carregar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variáveis globais
+        let responsibles = [];
+        let tasks = [];
+        let editingTaskId = null;
+        let editingResponsibleId = null;
+
+        // Elementos DOM
+        const taskList = document.getElementById('tasks-list-edit');
+        const taskFormContainer = document.getElementById('task-form-container');
+        const responsibleFormContainer = document.getElementById('responsible-form-container');
+        const responsibleList = document.getElementById('responsible-list');
+
+        // Inicialização
+        function initSystem() {
+            loadData();
+            populateResponsibleSelect();
+            renderQuadrantTasks();
+            updateQuadrantCounts();
+            renderResponsibles();
+            renderTasksForEdit();
+        }
+
+        // Carrega dados do localStorage ou de parâmetros URL
+        function loadData() {
+            // Tenta carregar da URL primeiro
+            const urlParams = new URLSearchParams(window.location.search);
+            const dataParam = urlParams.get('data');
+            
+            if (dataParam) {
+                try {
+                    const decodedData = decodeURIComponent(dataParam);
+                    const parsedData = JSON.parse(decodedData);
+                    
+                    if (parsedData.tasks && parsedData.responsibles) {
+                        tasks = parsedData.tasks;
+                        responsibles = parsedData.responsibles;
+                        saveToLocalStorage();
+                        return;
+                    }
+                } catch (e) {
+                    console.error("Erro ao carregar dados da URL:", e);
+                }
+            }
+            
+            // Se não houver dados na URL, carrega do localStorage
+            const savedTasks = localStorage.getItem('eisenhower-tasks');
+            const savedResponsibles = localStorage.getItem('eisenhower-responsibles');
+            
+            tasks = savedTasks ? JSON.parse(savedTasks) : [];
+            responsibles = savedResponsibles ? JSON.parse(savedResponsibles) : [];
+        }
+
+        // Gera URL com os dados incorporados
+        function generateDataUrl() {
+            const data = {
+                tasks: tasks,
+                responsibles: responsibles
+            };
+            
+            const jsonData = JSON.stringify(data);
+            const encodedData = encodeURIComponent(jsonData);
+            
+            const currentUrl = window.location.href.split('?')[0];
+            return `${currentUrl}?data=${encodedData}`;
+        }
+
+        // Exporta dados para um arquivo JSON
+        function exportData() {
+            const data = {
+                tasks: tasks,
+                responsibles: responsibles,
+                generatedAt: new Date().toISOString()
+            };
+            
+            const jsonData = JSON.stringify(data, null, 2);
+            const blob = new Blob([jsonData], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'matriz-eisenhower-dados.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            // Mostra URL para compartilhamento
+            const dataUrl = generateDataUrl();
+            alert(`Dados exportados com sucesso!\n\nPara compartilhar, use este link:\n${dataUrl}`);
+        }
+
+        // Importa dados de um arquivo JSON
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    
+                    if (data.tasks && data.responsibles) {
+                        if (confirm(`Deseja importar ${data.tasks.length} tarefas e ${data.responsibles.length} responsáveis?`)) {
+                            tasks = data.tasks;
+                            responsibles = data.responsibles;
+                            saveToLocalStorage();
+                            initSystem();
+                            alert('Dados importados com sucesso!');
+                        }
+                    } else {
+                        alert('Arquivo inválido. O arquivo deve conter tarefas e responsáveis.');
+                    }
+                } catch (e) {
+                    alert('Erro ao ler o arquivo. Certifique-se de que é um JSON válido.');
+                    console.error(e);
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = ''; // Limpa o input para permitir nova seleção
+        }
+
+        // Carrega dados de uma URL
+        function loadDataFromUrl() {
+            const url = document.getElementById('data-url').value.trim();
+            if (!url) return;
+            
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) throw new Error('Erro ao carregar dados');
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.tasks && data.responsibles) {
+                        if (confirm(`Deseja importar ${data.tasks.length} tarefas e ${data.responsibles.length} responsáveis?`)) {
+                            tasks = data.tasks;
+                            responsibles = data.responsibles;
+                            saveToLocalStorage();
+                            initSystem();
+                            alert('Dados carregados com sucesso!');
+                        }
+                    } else {
+                        alert('Dados inválidos. A URL deve retornar tarefas e responsáveis.');
+                    }
+                })
+                .catch(error => {
+                    alert('Erro ao carregar dados: ' + error.message);
+                    console.error(error);
+                });
+        }
+
+        // Reseta todos os dados
+        function resetData() {
+            if (confirm('Tem certeza que deseja limpar TODOS os dados? Esta ação não pode ser desfeita.')) {
+                tasks = [];
+                responsibles = [];
+                saveToLocalStorage();
+                initSystem();
+                alert('Todos os dados foram removidos.');
+            }
+        }
+
+        // Salva dados no localStorage
+        function saveToLocalStorage() {
+            localStorage.setItem('eisenhower-tasks', JSON.stringify(tasks));
+            localStorage.setItem('eisenhower-responsibles', JSON.stringify(responsibles));
+        }
+
+        // Funções auxiliares
+        function getResponsibleInfo(id) {
+            return responsibles.find(r => r.id === id) || { name: "Não definido", avatar: "https://img.icons8.com/ios/50/000000/user-male-circle.png" };
+        }
+
+        function classifyTask(task) {
+            const today = new Date();
+            const dueDate = new Date(task.end);
+            const timeDiff = dueDate.getTime() - today.getTime();
+            const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+            
+            const isUrgent = daysDiff <= 3 || task.priority === 'high';
+            const isImportant = task.importance === 'high' || (task.importance === 'medium' && task.priority === 'medium');
+            
+            if (isImportant && isUrgent) return 1;
+            if (isImportant && !isUrgent) return 2;
+            if (!isImportant && isUrgent) return 3;
+            return 4;
+        }
+
+        function updateQuadrantCounts() {
+            const counts = [0, 0, 0, 0];
+            
+            tasks.forEach(task => {
+                const quadrant = classifyTask(task);
+                counts[quadrant - 1]++;
+            });
+            
+            document.getElementById('quadrant-1-count').textContent = counts[0];
+            document.getElementById('quadrant-2-count').textContent = counts[1];
+            document.getElementById('quadrant-3-count').textContent = counts[2];
+            document.getElementById('quadrant-4-count').textContent = counts[3];
+            
+            document.getElementById('quadrant-1-header-count').textContent = counts[0];
+            document.getElementById('quadrant-2-header-count').textContent = counts[1];
+            document.getElementById('quadrant-3-header-count').textContent = counts[2];
+            document.getElementById('quadrant-4-header-count').textContent = counts[3];
+        }
+
+        function renderQuadrantTasks() {
+            const quadrants = [
+                document.getElementById('quadrant-1-tasks'),
+                document.getElementById('quadrant-2-tasks'),
+                document.getElementById('quadrant-3-tasks'),
+                document.getElementById('quadrant-4-tasks')
+            ];
+            
+            quadrants.forEach(quadrant => {
+                quadrant.innerHTML = '';
+            });
+            
+            const tasksByQuadrant = [[], [], [], []];
+            
+            tasks.forEach((task, index) => {
+                const quadrantIndex = classifyTask(task) - 1;
+                tasksByQuadrant[quadrantIndex].push({...task, originalIndex: index});
+            });
+            
+            tasksByQuadrant.forEach((tasksInQuadrant, quadrantIndex) => {
+                const quadrantElement = quadrants[quadrantIndex];
+                
+                if (tasksInQuadrant.length === 0) {
+                    quadrantElement.innerHTML = `
+                        <div class="empty-state">
+                            <img src="https://img.icons8.com/ios/100/000000/task-completed.png" alt="Nenhuma tarefa">
+                            <p>${getEmptyStateMessage(quadrantIndex + 1)}</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                tasksInQuadrant.forEach(task => {
+                    const priorityText = task.priority === 'high' ? 'Alta' : 
+                                      task.priority === 'medium' ? 'Média' : 'Baixa';
+                    
+                    const importanceText = task.importance === 'high' ? 'Alta' : 
+                                        task.importance === 'medium' ? 'Média' : 'Baixa';
+                    
+                    const responsible = getResponsibleInfo(task.responsible);
+                    
+                    const taskItem = document.createElement('div');
+                    taskItem.classList.add('task-card');
+                    
+                    taskItem.innerHTML = `
+                        <img src="${task.icon || 'https://img.icons8.com/ios/60/task.png'}" alt="Ícone" onerror="this.onerror=null; this.src='https://img.icons8.com/ios/60/task.png'">
+                        <div class="task-details">
+                            <strong>${task.name} <span class="task-priority priority-${task.priority}">${priorityText}</span></strong>
+                            <p>Importância: ${importanceText}</p>
+                            <p>Conclusão: ${formatDateForDisplay(task.end)}</p>
+                            <div class="task-responsible">
+                                <img src="${responsible.avatar}" alt="${responsible.name}" onerror="this.src='https://img.icons8.com/ios/50/000000/user-male-circle.png'">
+                                <span>${responsible.name}</span>
+                            </div>
+                        </div>
+                        <div class="task-actions">
+                            <button class="edit-btn" onclick="editTask(${task.id})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="delete-btn" onclick="deleteTask(${task.id})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    `;
+                    
+                    quadrantElement.appendChild(taskItem);
+                });
+            });
+        }
+
+        function getEmptyStateMessage(quadrant) {
+            switch(quadrant) {
+                case 1: return 'Nenhuma tarefa importante e urgente';
+                case 2: return 'Nenhuma tarefa importante não urgente';
+                case 3: return 'Nenhuma tarefa urgente não importante';
+                case 4: return 'Nenhuma tarefa não urgente não importante';
+                default: return 'Nenhuma tarefa';
+            }
+        }
+
+        function formatDateForDisplay(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('pt-BR');
+        }
+
+        function getNextId(items) {
+            return items.length > 0 ? Math.max(...items.map(item => item.id)) + 1 : 1;
+        }
+
+        function exportToTxt() {
+            let content = 'RELATÓRIO DE TAREFAS - MATRIZ DE EISENHOWER\n';
+            content += '=============================================\n\n';
+            
+            content += 'RESUMO POR QUADRANTE:\n';
+            content += '---------------------\n';
+            content += `1. Importante e Urgente: ${document.getElementById('quadrant-1-count').textContent} tarefas\n`;
+            content += `2. Importante não Urgente: ${document.getElementById('quadrant-2-count').textContent} tarefas\n`;
+            content += `3. Urgente não Importante: ${document.getElementById('quadrant-3-count').textContent} tarefas\n`;
+            content += `4. Não Urgente não Importante: ${document.getElementById('quadrant-4-count').textContent} tarefas\n\n`;
+            
+            content += 'DETALHES DAS TAREFAS:\n';
+            content += '---------------------\n';
+            
+            tasks.forEach((task, index) => {
+                const quadrant = classifyTask(task);
+                const responsible = getResponsibleInfo(task.responsible);
+                
+                content += `${index + 1}. ${task.name}\n`;
+                content += `   Quadrante: ${quadrant}\n`;
+                content += `   Prioridade: ${task.priority === 'high' ? 'Alta' : task.priority === 'medium' ? 'Média' : 'Baixa'}\n`;
+                content += `   Importância: ${task.importance === 'high' ? 'Alta' : task.importance === 'medium' ? 'Média' : 'Baixa'}\n`;
+                content += `   Responsável: ${responsible.name}\n`;
+                content += `   Data Início: ${formatDateForDisplay(task.start)}\n`;
+                content += `   Data Conclusão: ${formatDateForDisplay(task.end)}\n\n`;
+            });
+            
+            content += '\nRESPONSÁVEIS:\n';
+            content += '------------\n';
+            responsibles.forEach((responsible, index) => {
+                content += `${index + 1}. ${responsible.name}\n`;
+            });
+            
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'matriz_eisenhower_relatorio.txt';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        }
+
+        function openTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.getElementById(tabName).classList.add('active');
+            event.currentTarget.classList.add('active');
+            
+            if (tabName === 'dashboard') {
+                renderQuadrantTasks();
+                updateQuadrantCounts();
+            } else if (tabName === 'tasks') {
+                renderTasksForEdit();
+            } else if (tabName === 'responsibles') {
+                renderResponsibles();
+            }
+        }
+
+        function populateResponsibleSelect() {
+            const select = document.getElementById('task-responsible');
+            select.innerHTML = '<option value="">Selecione um responsável</option>';
+            
+            responsibles.forEach(responsible => {
+                const option = document.createElement('option');
+                option.value = responsible.id;
+                option.textContent = responsible.name;
+                select.appendChild(option);
+            });
+        }
+
+        function renderTasksForEdit() {
+            taskList.innerHTML = '';
+            
+            if (tasks.length === 0) {
+                taskList.innerHTML = `
+                    <div class="empty-state" style="color: var(--text-light);">
+                        <img src="https://img.icons8.com/ios/100/000000/task-completed.png" alt="Nenhuma tarefa">
+                        <h3>Nenhuma tarefa cadastrada</h3>
+                        <p>Clique em "Nova Tarefa" para adicionar uma nova tarefa</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            tasks.forEach((task, index) => {
+                const priorityText = task.priority === 'high' ? 'Alta' : 
+                                  task.priority === 'medium' ? 'Média' : 'Baixa';
+                
+                const importanceText = task.importance === 'high' ? 'Alta' : 
+                                    task.importance === 'medium' ? 'Média' : 'Baixa';
+                
+                const quadrant = classifyTask(task);
+                const responsible = getResponsibleInfo(task.responsible);
+                
+                const taskItem = document.createElement('div');
+                taskItem.classList.add('task-card');
+                
+                taskItem.innerHTML = `
+                    <div style="width: 8px; height: 100%; background: var(--eisenhower-${quadrant}); border-radius: 4px 0 0 4px; position: absolute; left: 0;"></div>
+                    <img src="${task.icon || 'https://img.icons8.com/ios/60/task.png'}" alt="Ícone" onerror="this.onerror=null; this.src='https://img.icons8.com/ios/60/task.png'">
+                    <div class="task-details">
+                        <strong>${task.name} <span class="task-priority priority-${task.priority}">${priorityText}</span></strong>
+                        <p>Importância: ${importanceText} | Quadrante: ${quadrant}</p>
+                        <p>Início: ${formatDateForDisplay(task.start)} | Conclusão: ${formatDateForDisplay(task.end)}</p>
+                        <div class="task-responsible">
+                            <img src="${responsible.avatar}" alt="${responsible.name}" onerror="this.src='https://img.icons8.com/ios/50/000000/user-male-circle.png'">
+                            <span>${responsible.name}</span>
+                        </div>
+                    </div>
+                    <div class="task-actions">
+                        <button class="edit-btn" onclick="editTask(${task.id})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="delete-btn" onclick="deleteTask(${task.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                
+                taskList.appendChild(taskItem);
+            });
+        }
+
+        function showTaskForm(task = null) {
+            editingTaskId = task ? task.id : null;
+            
+            if (task) {
+                document.getElementById('task-id').value = task.id;
+                document.getElementById('task-name').value = task.name;
+                document.getElementById('task-icon').value = task.icon || '';
+                document.getElementById('task-start').value = task.start;
+                document.getElementById('task-end').value = task.end;
+                document.getElementById('task-priority').value = task.priority;
+                document.getElementById('task-importance').value = task.importance;
+                document.getElementById('task-responsible').value = task.responsible;
+            } else {
+                document.getElementById('task-form').reset();
+                document.getElementById('task-id').value = '';
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('task-start').value = today;
+                document.getElementById('task-end').value = today;
+                document.getElementById('task-priority').value = 'medium';
+                document.getElementById('task-importance').value = 'medium';
+                document.getElementById('task-responsible').value = '';
+            }
+            
+            taskFormContainer.style.display = 'block';
+            document.getElementById('task-name').focus();
+        }
+
+        function cancelTaskForm() {
+            taskFormContainer.style.display = 'none';
+            editingTaskId = null;
+        }
+
+        function saveTask(event) {
+            event.preventDefault();
+            
+            const taskId = document.getElementById('task-id').value;
+            const taskData = {
+                id: taskId ? parseInt(taskId) : getNextId(tasks),
+                name: document.getElementById('task-name').value,
+                start: document.getElementById('task-start').value,
+                end: document.getElementById('task-end').value,
+                icon: document.getElementById('task-icon').value,
+                priority: document.getElementById('task-priority').value,
+                importance: document.getElementById('task-importance').value,
+                responsible: parseInt(document.getElementById('task-responsible').value)
+            };
+            
+            if (taskId) {
+                const index = tasks.findIndex(t => t.id === parseInt(taskId));
+                if (index !== -1) {
+                    tasks[index] = taskData;
+                }
+            } else {
+                tasks.push(taskData);
+            }
+            
+            saveToLocalStorage();
+            renderTasksForEdit();
+            cancelTaskForm();
+            
+            if (document.getElementById('dashboard').classList.contains('active')) {
+                renderQuadrantTasks();
+                updateQuadrantCounts();
+            }
+        }
+
+        function editTask(id) {
+            const task = tasks.find(t => t.id === id);
+            if (task) {
+                showTaskForm(task);
+                document.getElementById('tasks').scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        function deleteTask(id) {
+            if (confirm('Tem certeza que deseja excluir esta tarefa?')) {
+                tasks = tasks.filter(task => task.id !== id);
+                saveToLocalStorage();
+                renderTasksForEdit();
+                
+                if (document.getElementById('dashboard').classList.contains('active')) {
+                    renderQuadrantTasks();
+                    updateQuadrantCounts();
+                }
+            }
+        }
+
+        function renderResponsibles() {
+            responsibleList.innerHTML = '';
+            
+            if (responsibles.length === 0) {
+                responsibleList.innerHTML = `
+                    <div class="empty-state" style="color: var(--text-light);">
+                        <img src="https://img.icons8.com/ios/100/000000/conference-call.png" alt="Nenhum responsável">
+                        <h3>Nenhum responsável cadastrado</h3>
+                        <p>Clique em "Novo Responsável" para adicionar um novo responsável</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            responsibles.forEach(responsible => {
+                const responsibleCard = document.createElement('div');
+                responsibleCard.classList.add('task-card');
+                
+                responsibleCard.innerHTML = `
+                    <img src="${responsible.avatar}" alt="${responsible.name}" onerror="this.src='https://img.icons8.com/ios/50/000000/user-male-circle.png'">
+                    <div class="task-details">
+                        <strong>${responsible.name}</strong>
+                        <p>ID: ${responsible.id}</p>
+                    </div>
+                    <div class="task-actions">
+                        <button class="edit-btn" onclick="editResponsible(${responsible.id})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="delete-btn" onclick="deleteResponsible(${responsible.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                
+                responsibleList.appendChild(responsibleCard);
+            });
+        }
+
+        function showResponsibleForm(responsible = null) {
+            editingResponsibleId = responsible ? responsible.id : null;
+            
+            if (responsible) {
+                document.getElementById('responsible-id').value = responsible.id;
+                document.getElementById('responsible-name').value = responsible.name;
+                document.getElementById('responsible-avatar').value = responsible.avatar || '';
+            } else {
+                document.getElementById('responsible-form').reset();
+                document.getElementById('responsible-id').value = '';
+            }
+            
+            responsibleFormContainer.style.display = 'block';
+            document.getElementById('responsible-name').focus();
+        }
+
+        function cancelResponsibleForm() {
+            responsibleFormContainer.style.display = 'none';
+            editingResponsibleId = null;
+        }
+
+        function saveResponsible(event) {
+            event.preventDefault();
+            
+            const responsibleId = document.getElementById('responsible-id').value;
+            const responsibleData = {
+                id: responsibleId ? parseInt(responsibleId) : getNextId(responsibles),
+                name: document.getElementById('responsible-name').value,
+                avatar: document.getElementById('responsible-avatar').value || 'https://img.icons8.com/ios/50/000000/user-male-circle.png'
+            };
+            
+            if (responsibleId) {
+                const index = responsibles.findIndex(r => r.id === parseInt(responsibleId));
+                if (index !== -1) {
+                    responsibles[index] = responsibleData;
+                }
+            } else {
+                responsibles.push(responsibleData);
+            }
+            
+            saveToLocalStorage();
+            renderResponsibles();
+            populateResponsibleSelect();
+            cancelResponsibleForm();
+        }
+
+        function editResponsible(id) {
+            const responsible = responsibles.find(r => r.id === id);
+            if (responsible) {
+                showResponsibleForm(responsible);
+                document.getElementById('responsibles').scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        function deleteResponsible(id) {
+            const isUsed = tasks.some(task => task.responsible === id);
+            
+            if (isUsed) {
+                alert('Este responsável está associado a uma ou mais tarefas e não pode ser excluído.');
+                return;
+            }
+            
+            if (confirm('Tem certeza que deseja excluir este responsável?')) {
+                responsibles = responsibles.filter(responsible => responsible.id !== id);
+                saveToLocalStorage();
+                renderResponsibles();
+                populateResponsibleSelect();
+            }
+        }
+
+        // Inicializa o sistema quando a página carrega
+        window.addEventListener('DOMContentLoaded', initSystem);
+    </script>
+</body>
+</html>
